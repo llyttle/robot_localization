@@ -161,6 +161,10 @@ class ParticleFilter:
             return
 
         # TODO: modify particles using delta
+        for i in self.particle_cloud:
+            i.x += delta[0]
+            i.y += delta[1]
+            i.theta += delta[2]
 
     def map_calc_range(self,x,y,theta):
         """ Difficulty Level 3: implement a ray tracing likelihood model... Let me know if you are interested """
@@ -211,7 +215,13 @@ class ParticleFilter:
                       particle cloud around.  If this input is omitted, the odometry will be used """
         if xy_theta is None:
             xy_theta = self.transform_helper.convert_pose_to_xy_and_theta(self.odom_pose.pose)
+
         self.particle_cloud = []
+        for g in range(self.n_particles):
+            part = np.random.normal(0, 1, size=(1,3))
+            particle = Particle(*part.tolist()[0])
+            self.particle_cloud.append(particle)
+        
         # TODO create particles
 
         self.normalize_particles()
