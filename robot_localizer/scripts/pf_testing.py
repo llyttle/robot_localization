@@ -132,7 +132,14 @@ class ParticleFilter:
 
         # TODO: assign the latest pose into self.robot_pose as a geometry_msgs.Pose object
         # just to get started we will fix the robot's pose to always be at the origin
-        self.robot_pose = Pose()
+        # self.robot_pose = Pose()
+        # if self.odom_pose.pose:
+        #     self.robot_pose = self.odom_pose.pose
+        if self.particle_cloud:
+            self.robot_pose = self.particle_cloud[0].as_pose()
+
+        else:
+            self.robot_pose = Pose()
 
         self.transform_helper.fix_map_to_odom_transform(self.robot_pose, timestamp)
 
@@ -215,12 +222,15 @@ class ParticleFilter:
                       particle cloud around.  If this input is omitted, the odometry will be used """
         if xy_theta is None:
             xy_theta = self.transform_helper.convert_pose_to_xy_and_theta(self.odom_pose.pose)
+        
+        xy_theta = xy_theta[0] + 1, xy_theta[1], xy_theta[2]
 
         self.particle_cloud = []
-        for g in range(self.n_particles):
-            part = np.random.normal(0, 1, size=(1,3))
-            particle = Particle(*part.tolist()[0])
-            self.particle_cloud.append(particle)
+        # for g in range(self.n_particles):
+        #     part = np.random.normal(0, 1, size=(1,3))
+        #     particle = Particle(*part.tolist()[0])
+        #     self.particle_cloud.append(particle)
+        self.particle_cloud.append(Particle(*xy_theta))
         
         # TODO create particles
 
