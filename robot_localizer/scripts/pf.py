@@ -181,6 +181,15 @@ class ParticleFilter:
         # make sure the distribution is normalized
         self.normalize_particles()
         # TODO: fill out the rest of the implementation
+        weights = []
+        for particle in self.particle_cloud:
+            weights.append(particle.w)
+
+        choices = self.draw_random_sample(self.particle_cloud, weights, 20)
+
+        self.particle_cloud = []
+        for i in range(choices):
+            self.particle_cloud.append(Particle(choices[i].x, choices[i].y, choices[i].theta, weights[i]))
 
     def update_particles_with_laser(self, msg):
         """ Updates the particle weights in response to the scan contained in the msg """
@@ -189,11 +198,11 @@ class ParticleFilter:
         robot_position = self.transform_helper.convert_pose_to_xy_and_theta(self.odom_pose.pose)
         closest_object_robot = self.occupancy_field.get_closest_obstacle_distance(robot_position[0], robot_position[1])
         
-        for s in self.particle_cloud:
+        for i in self.particle_cloud:
             std_dv = 1
-            closest_object = self.occupancy_field.get_closest_obstacle_distance(s.x, s.y)
+            closest_object = self.occupancy_field.get_closest_obstacle_distance(i.x, i.y)
             scale = norm(closest_object, std_dv).pdf(closest_object)
-            s.w = norm(closest_object, std_dv).pdf(closest_object_robot)/scale
+            i.w = norm(closest_object, std_dv).pdf(closest_object_robot)/scale
 
 
             
@@ -230,7 +239,7 @@ class ParticleFilter:
 
         self.particle_cloud = []
         
-        for g in range(self.n_particles):
+        for i in range(self.n_particles):
             part = np.random.normal(0, 1, size=(1,3))
             particle = Particle(*part.tolist()[0], 1)
             self.particle_cloud.append(particle)
@@ -243,7 +252,12 @@ class ParticleFilter:
     def normalize_particles(self):
         """ Make sure the particle weights define a valid distribution (i.e. sum to 1.0) """
         # TODO: implement this
-        pass
+        sum_of_prob = 0
+        for i in self.particle_cloud:
+            sum_of_prob += i.w
+
+        for p in self.particle_cloud:
+            p.w = p.w/sum_of_prob
 
     def publish_particles(self, msg):
         particles_conv = []
