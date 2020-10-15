@@ -84,7 +84,7 @@ class ParticleFilter:
         self.odom_frame = "odom"        # the name of the odometry coordinate frame
         self.scan_topic = "scan"        # the topic where we will get laser scans from 
 
-        self.n_particles = 1          # the number of particles to use
+        self.n_particles = 300          # the number of particles to use
 
         self.d_thresh = 0.2             # the amount of linear movement before performing an update
         self.a_thresh = math.pi/6       # the amount of angular movement before performing an update
@@ -174,6 +174,7 @@ class ParticleFilter:
             return
 
         # Modify particles using delta. I assume that delta is in the Map frame. If not will have to fix this
+        # TODO: Add noise here
         for i in self.particle_cloud:
             i.x += delta[0]
             i.y += delta[1]
@@ -197,10 +198,10 @@ class ParticleFilter:
         for particle in self.particle_cloud:
             weights.append(particle.w)
 
-        choices = self.draw_random_sample(self.particle_cloud, weights, 20)
+        choices = self.draw_random_sample(self.particle_cloud, weights, n_particles)
 
         self.particle_cloud = []
-        for i in range(choices):
+        for i in range(len(choices)):
             self.particle_cloud.append(Particle(choices[i].x, choices[i].y, choices[i].theta, weights[i]))
 
     def update_particles_with_laser(self, msg):
