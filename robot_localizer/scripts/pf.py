@@ -84,7 +84,7 @@ class ParticleFilter:
         self.odom_frame = "odom"        # the name of the odometry coordinate frame
         self.scan_topic = "scan"        # the topic where we will get laser scans from 
 
-        self.n_particles = 300          # the number of particles to use
+        self.n_particles = 1          # the number of particles to use
 
         self.d_thresh = 0.2             # the amount of linear movement before performing an update
         self.a_thresh = math.pi/6       # the amount of angular movement before performing an update
@@ -133,7 +133,19 @@ class ParticleFilter:
 
         # TODO: assign the latest pose into self.robot_pose as a geometry_msgs.Pose object
         # just to get started we will fix the robot's pose to always be at the origin
-        self.robot_pose = Pose()
+        # Calculate the mean pose
+        if self.particle_cloud:
+            mean_x, mean_y, mean_theta = 0, 0, 0
+            for particle in self.particle_cloud:
+                mean_x += particle.x
+                mean_y += particle.y
+                mean_theta += particle.theta
+            mean_x /= len(self.particle_cloud)
+            mean_y /= len(self.particle_cloud)
+            mean_theta /= len(self.particle_cloud)
+            self.robot_pose = Particle(mean_x, mean_y, mean_theta).as_pose()
+        else:
+            self.robot_pose = Pose()
 
         self.transform_helper.fix_map_to_odom_transform(self.robot_pose, timestamp)
 
@@ -161,7 +173,7 @@ class ParticleFilter:
             self.current_odom_xy_theta = new_odom_xy_theta
             return
 
-        # TODO: modify particles using delta
+        # Modify particles using delta. I assume that delta is in the Map frame. If not will have to fix this
         for i in self.particle_cloud:
             i.x += delta[0]
             i.y += delta[1]
@@ -204,9 +216,6 @@ class ParticleFilter:
             scale = norm(closest_object, std_dv).pdf(closest_object)
             i.w = norm(closest_object, std_dv).pdf(closest_object_robot)/scale
 
-
-            
-
     @staticmethod
     def draw_random_sample(choices, probabilities, n):
         """ Return a random sample of n elements from the set choices with the specified probabilities
@@ -236,15 +245,18 @@ class ParticleFilter:
                       particle cloud around.  If this input is omitted, the odometry will be used """
         if xy_theta is None:
             xy_theta = self.transform_helper.convert_pose_to_xy_and_theta(self.odom_pose.pose)
-
-        self.particle_cloud = []
         
-        for i in range(self.n_particles):
-            part = np.random.normal(0, 1, size=(1,3))
-            particle = Particle(*part.tolist()[0], 1)
-            self.particle_cloud.append(particle)
+        # xy_theta = xy_theta[0] + 1, xy_theta[1], xy_theta[2]
 
-        # TODO create particles
+        # Create particles based on gaussian distribution centered around xy_theta
+        self.particle_cloud = [] 
+        for g in range(self.n_particles):
+            x = np.random.normal(xy_theta[0])
+            y = np.random.normal(xy_theta[1])
+            theta = np.random.normal(xy_theta[2])
+            self.particle_cloud.append(Particle(x, y, theta, 1))
+
+        # self.particle_cloud.append(Particle(*xy_theta))
 
         self.normalize_particles()
         self.update_robot_pose(timestamp)
