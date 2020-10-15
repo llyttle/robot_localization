@@ -19,6 +19,7 @@ from random import gauss
 import math
 import time
 
+from scipy.stats import norm
 import numpy as np
 from numpy.random import random_sample
 from sklearn.neighbors import NearestNeighbors
@@ -184,7 +185,18 @@ class ParticleFilter:
     def update_particles_with_laser(self, msg):
         """ Updates the particle weights in response to the scan contained in the msg """
         # TODO: implement this
-        pass
+
+        robot_position = self.transform_helper.convert_pose_to_xy_and_theta(self.odom_pose.pose)
+        closest_object_robot = self.occupancy_field.get_closest_obstacle_distance(robot_position[0], robot_position[1])
+        
+        for s in self.particle_cloud:
+            std_dv = 1
+            closest_object = self.occupancy_field.get_closest_obstacle_distance(s.x, s.y)
+            scale = norm(closest_object, std_dv).pdf(closest_object)
+            s.w = norm(closest_object, std_dv).pdf(closest_object_robot)/scale
+
+
+            
 
     @staticmethod
     def draw_random_sample(choices, probabilities, n):
@@ -217,11 +229,12 @@ class ParticleFilter:
             xy_theta = self.transform_helper.convert_pose_to_xy_and_theta(self.odom_pose.pose)
 
         self.particle_cloud = []
+        
         for g in range(self.n_particles):
             part = np.random.normal(0, 1, size=(1,3))
-            particle = Particle(*part.tolist()[0])
+            particle = Particle(*part.tolist()[0], 1)
             self.particle_cloud.append(particle)
-        
+
         # TODO create particles
 
         self.normalize_particles()
