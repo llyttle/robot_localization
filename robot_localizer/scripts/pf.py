@@ -84,7 +84,7 @@ class ParticleFilter:
         self.odom_frame = "odom"        # the name of the odometry coordinate frame
         self.scan_topic = "scan"        # the topic where we will get laser scans from 
 
-        self.n_particles = 300          # the number of particles to use
+        self.n_particles = 1          # the number of particles to use
 
         self.d_thresh = 0.2             # the amount of linear movement before performing an update
         self.a_thresh = math.pi/6       # the amount of angular movement before performing an update
@@ -133,12 +133,17 @@ class ParticleFilter:
 
         # TODO: assign the latest pose into self.robot_pose as a geometry_msgs.Pose object
         # just to get started we will fix the robot's pose to always be at the origin
-        # self.robot_pose = Pose()
-        # if self.odom_pose.pose:
-        #     self.robot_pose = self.odom_pose.pose
+        # Calculate the mean pose
         if self.particle_cloud:
-            self.robot_pose = self.particle_cloud[0].as_pose()
-
+            mean_x, mean_y, mean_theta = 0, 0, 0
+            for particle in self.particle_cloud:
+                mean_x += particle.x
+                mean_y += particle.y
+                mean_theta += particle.theta
+            mean_x /= len(self.particle_cloud)
+            mean_y /= len(self.particle_cloud)
+            mean_theta /= len(self.particle_cloud)
+            self.robot_pose = Particle(mean_x, mean_y, mean_theta).as_pose()
         else:
             self.robot_pose = Pose()
 
