@@ -136,9 +136,9 @@ class ParticleFilter:
         # just to get started we will fix the robot's pose to always be at the origin
         # Calculate the mean pose
         if self.particle_cloud:
-            mean_x, mean_y, mean_theta = 0, 0, 
+            mean_x, mean_y, mean_theta = 0, 0, 0
             for particle in self.particle_cloud:
-                mean_x += particle.x0
+                mean_x += particle.x
                 mean_y += particle.y
                 mean_theta += particle.theta
             mean_x /= len(self.particle_cloud)
@@ -174,7 +174,7 @@ class ParticleFilter:
             self.current_odom_xy_theta = new_odom_xy_theta
             return
 
-        # Modify particles using delta and inject noise. I assume that delta is in the Map frame. If not will have to fix this
+        # Modify particles using delta and inject noise. TODO: I assume that delta is in the Map frame. If not will have to fix this
         for i in self.particle_cloud:
             i.x += delta[0] + np.random.normal(scale=.2)
             i.y += delta[1] + np.random.normal(scale=.2)
@@ -218,9 +218,10 @@ class ParticleFilter:
         for particle in self.particle_cloud:
             std_dv = 1
             closest_object = self.occupancy_field.get_closest_obstacle_distance(particle.x, particle.y)
-            scale = norm(closest_object, std_dv).pdf(closest_object)
+            # scale = norm(closest_object, std_dv).pdf(closest_object)
             # TODO: Maybe don't need to divide by scale?
-            self.scan_probabilities.append(norm(closest_object, std_dv).pdf(closest_object_robot) / scale)
+            # self.scan_probabilities.append(norm(closest_object, std_dv).pdf(closest_object_robot) / scale)
+            self.scan_probabilities.append(norm(closest_object, std_dv).pdf(closest_object_robot))
         
         # TODO: Probably don't need this here b/c update_robot_pose() also calls normalize_particles()
         self.normalize_particles()
@@ -260,7 +261,7 @@ class ParticleFilter:
         for g in range(self.n_particles):
             x = np.random.normal(xy_theta[0])
             y = np.random.normal(xy_theta[1])
-            theta = np.random.normal(xy_theta[2])
+            theta = np.random.normal(xy_theta[2], scale=0.2)
             self.particle_cloud.append(Particle(x, y, theta, 1))
 
         self.normalize_particles()
