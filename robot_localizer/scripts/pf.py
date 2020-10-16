@@ -136,9 +136,9 @@ class ParticleFilter:
         # just to get started we will fix the robot's pose to always be at the origin
         # Calculate the mean pose
         if self.particle_cloud:
-            mean_x, mean_y, mean_theta = 0, 0, 0
+            mean_x, mean_y, mean_theta = 0, 0, 
             for particle in self.particle_cloud:
-                mean_x += particle.x
+                mean_x += particle.x0
                 mean_y += particle.y
                 mean_theta += particle.theta
             mean_x /= len(self.particle_cloud)
