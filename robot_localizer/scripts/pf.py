@@ -84,7 +84,7 @@ class ParticleFilter:
         self.odom_frame = "odom"        # the name of the odometry coordinate frame
         self.scan_topic = "scan"        # the topic where we will get laser scans from 
 
-        self.n_particles = 1          # the number of particles to use
+        self.n_particles = 300          # the number of particles to use
 
         self.d_thresh = 0.2             # the amount of linear movement before performing an update
         self.a_thresh = math.pi/6       # the amount of angular movement before performing an update
@@ -109,6 +109,7 @@ class ParticleFilter:
         self.tf_broadcaster = TransformBroadcaster()
 
         self.particle_cloud = []
+        self.scan_probabilities = []
 
         # change use_projected_stable_scan to True to use point clouds instead of laser scans
         self.use_projected_stable_scan = False
@@ -173,11 +174,11 @@ class ParticleFilter:
             self.current_odom_xy_theta = new_odom_xy_theta
             return
 
-        # Modify particles using delta. I assume that delta is in the Map frame. If not will have to fix this
+        # Modify particles using delta and inject noise. I assume that delta is in the Map frame. If not will have to fix this
         for i in self.particle_cloud:
-            i.x += delta[0]
-            i.y += delta[1]
-            i.theta += delta[2]
+            i.x += delta[0] + np.random.normal(scale=.2)
+            i.y += delta[1] + np.random.normal(scale=.2)
+            i.theta += delta[2] + np.random.normal(scale=.2)
 
     def map_calc_range(self,x,y,theta):
         """ Difficulty Level 3: implement a ray tracing likelihood model... Let me know if you are interested """
@@ -197,10 +198,10 @@ class ParticleFilter:
         for particle in self.particle_cloud:
             weights.append(particle.w)
 
-        choices = self.draw_random_sample(self.particle_cloud, weights, 20)
+        choices = self.draw_random_sample(self.particle_cloud, weights, self.n_particles)
 
         self.particle_cloud = []
-        for i in range(choices):
+        for i in range(len(choices)):
             self.particle_cloud.append(Particle(choices[i].x, choices[i].y, choices[i].theta, weights[i]))
 
     def update_particles_with_laser(self, msg):
@@ -210,11 +211,17 @@ class ParticleFilter:
         robot_position = self.transform_helper.convert_pose_to_xy_and_theta(self.odom_pose.pose)
         closest_object_robot = self.occupancy_field.get_closest_obstacle_distance(robot_position[0], robot_position[1])
         
-        for i in self.particle_cloud:
+        # Reset scan probabilities
+        self.scan_probabilities = []
+        for particle in self.particle_cloud:
             std_dv = 1
-            closest_object = self.occupancy_field.get_closest_obstacle_distance(i.x, i.y)
+            closest_object = self.occupancy_field.get_closest_obstacle_distance(particle.x, particle.y)
             scale = norm(closest_object, std_dv).pdf(closest_object)
-            i.w = norm(closest_object, std_dv).pdf(closest_object_robot)/scale
+            # TODO: Maybe don't need to divide by scale?
+            self.scan_probabilities.append(norm(closest_object, std_dv).pdf(closest_object_robot) / scale)
+        
+        # TODO: Probably don't need this here b/c update_robot_pose() also calls normalize_particles()
+        self.normalize_particles()
 
     @staticmethod
     def draw_random_sample(choices, probabilities, n):
@@ -246,8 +253,6 @@ class ParticleFilter:
         if xy_theta is None:
             xy_theta = self.transform_helper.convert_pose_to_xy_and_theta(self.odom_pose.pose)
         
-        # xy_theta = xy_theta[0] + 1, xy_theta[1], xy_theta[2]
-
         # Create particles based on gaussian distribution centered around xy_theta
         self.particle_cloud = [] 
         for g in range(self.n_particles):
@@ -256,20 +261,18 @@ class ParticleFilter:
             theta = np.random.normal(xy_theta[2])
             self.particle_cloud.append(Particle(x, y, theta, 1))
 
-        # self.particle_cloud.append(Particle(*xy_theta))
-
         self.normalize_particles()
         self.update_robot_pose(timestamp)
 
     def normalize_particles(self):
         """ Make sure the particle weights define a valid distribution (i.e. sum to 1.0) """
         # TODO: implement this
-        sum_of_prob = 0
-        for i in self.particle_cloud:
-            sum_of_prob += i.w
+        # Check if scan probabilities has been populated for each particle
+        if len(self.scan_probabilities) == len(self.particle_cloud):
+            sum_of_prob = sum(self.scan_probabilities)
 
-        for p in self.particle_cloud:
-            p.w = p.w/sum_of_prob
+            for i, particle in enumerate(self.particle_cloud):
+                particle.w = self.scan_probabilities[i] / sum_of_prob
 
     def publish_particles(self, msg):
         particles_conv = []
