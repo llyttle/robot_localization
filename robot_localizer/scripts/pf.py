@@ -200,15 +200,17 @@ class ParticleFilter:
 
         choices = self.draw_random_sample(self.particle_cloud, weights, self.n_particles)
 
+        # Reset particle cloud
         self.particle_cloud = []
-        for i in range(len(choices)):
-            self.particle_cloud.append(Particle(choices[i].x, choices[i].y, choices[i].theta, weights[i]))
+        for chosen_particle in choices:
+            self.particle_cloud.append(Particle(chosen_particle.x, chosen_particle.y, chosen_particle.theta, chosen_particle.w))
 
     def update_particles_with_laser(self, msg):
         """ Updates the particle weights in response to the scan contained in the msg """
         # TODO: implement this
 
-        robot_position = self.transform_helper.convert_pose_to_xy_and_theta(self.odom_pose.pose)
+        # robot_position = self.transform_helper.convert_pose_to_xy_and_theta(self.odom_pose.pose)
+        robot_position = self.current_odom_xy_theta
         closest_object_robot = self.occupancy_field.get_closest_obstacle_distance(robot_position[0], robot_position[1])
         
         # Reset scan probabilities
