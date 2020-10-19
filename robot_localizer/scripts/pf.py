@@ -25,6 +25,7 @@ from numpy.random import random_sample
 from sklearn.neighbors import NearestNeighbors
 from occupancy_field import OccupancyField
 from helper_functions import TFHelper
+from functools import reduce
 
 class Particle(object):
     """ Represents a hypothesis (particle) of the robot's pose consisting of x,y and theta (yaw)
@@ -208,23 +209,32 @@ class ParticleFilter:
     def update_particles_with_laser(self, msg):
         """ Updates the particle weights in response to the scan contained in the msg """
         # TODO: implement this
+        lidar_scan_angles = [0, 180]
+        lidar_scan = []
 
-        # robot_position = self.transform_helper.convert_pose_to_xy_and_theta(self.odom_pose.pose)
-        robot_position = self.current_odom_xy_theta
-        closest_object_robot = self.occupancy_field.get_closest_obstacle_distance(robot_position[0], robot_position[1])
-        
-        # Reset scan probabilities
+        for theta in lidar_scan_angles:
+            distance = msg.ranges[theta]
+            point = (theta,distance)
+            lidar_scan.append(point)
+
         self.scan_probabilities = []
-        for particle in self.particle_cloud:
-            std_dv = 1
-            closest_object = self.occupancy_field.get_closest_obstacle_distance(particle.x, particle.y)
-            # scale = norm(closest_object, std_dv).pdf(closest_object)
-            # TODO: Maybe don't need to divide by scale?
-            # self.scan_probabilities.append(norm(closest_object, std_dv).pdf(closest_object_robot) / scale)
-            self.scan_probabilities.append(norm(closest_object, std_dv).pdf(closest_object_robot))
+        
+        for p in self.particle_cloud:
+            particle_theta_prob = []
+            for point in lidar_scan:
+                x_vector = p.x + point[1]*math.cos(math.radians(point[0]+p.theta))
+                y_vector = p.y + point[1]*math.sin(math.radians(point[0]+p.theta))
+                closest_object = self.occupancy_field.get_closest_obstacle_distance(x_vector, y_vector)
+                #calculate probabilities using f(x) = 1/x
+                particle_theta_prob.append(1/closest_object)
+
+            #combine probabilities
+            self.scan_probabilities.append(reduce(lambda a, b: a*b, closest_object))
+            
+            
         
         # TODO: Probably don't need this here b/c update_robot_pose() also calls normalize_particles()
-        self.normalize_particles()
+        #self.normalize_particles()
 
     @staticmethod
     def draw_random_sample(choices, probabilities, n):
