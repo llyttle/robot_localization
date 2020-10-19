@@ -199,6 +199,7 @@ class ParticleFilter:
         for particle in self.particle_cloud:
             weights.append(particle.w)
 
+        # TODO: Some bug that's throwing index out of bounds errors
         choices = self.draw_random_sample(self.particle_cloud, weights, self.n_particles)
 
         # Reset particle cloud
@@ -229,7 +230,7 @@ class ParticleFilter:
                 particle_theta_prob.append(1/closest_object)
 
             #combine probabilities
-            self.scan_probabilities.append(reduce(lambda a, b: a*b, closest_object))
+            self.scan_probabilities.append(reduce(lambda a, b: a*b, particle_theta_prob))
             
             
         
