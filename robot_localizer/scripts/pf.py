@@ -177,12 +177,19 @@ class ParticleFilter:
 
         # Modify particles using delta and inject noise. TODO: I assume that delta is in the Map frame. If not will have to fix this
         for particle in self.particle_cloud:
+            #Step 1: turn particles in direction of translation
+            r_1 = np.arctan(delta[1]/delta[0]) - delta[2]
+            #Step 2: move particles forward distance of translation
+            d = math.sqrt(delta[0]**2 + delta[1]**2)
+            particle.x += d*np.cos(r_1)
+            particle.y += d*np.sin(r_1)
+            #Step 3: turn particles to final angle
+            r_2 = delta[2] - r_1
+            particle.theta += r_2
+
             # i.x += delta[0] + np.random.normal(scale=.05)
             # i.y += delta[1] + np.random.normal(scale=.05)
             # i.theta += delta[2] + np.random.normal(scale=.05)
-            particle.x += delta[0]
-            particle.y += delta[1]
-            particle.theta += delta[2]
 
     def map_calc_range(self,x,y,theta):
         """ Difficulty Level 3: implement a ray tracing likelihood model... Let me know if you are interested """
