@@ -177,19 +177,19 @@ class ParticleFilter:
 
         # Modify particles using delta and inject noise. TODO: I assume that delta is in the Map frame. If not will have to fix this
         for particle in self.particle_cloud:
-            #Step 1: turn particles in direction of translation
-            r_1 = np.arctan(delta[1]/delta[0]) - delta[2]
-            #Step 2: move particles forward distance of translation
+            # Step 1: turn particles in direction of translation
+            r_1 = np.arctan(delta[1] / delta[0]) - delta[2]
+            # Step 2: move particles forward distance of translation
             d = math.sqrt(delta[0]**2 + delta[1]**2)
-            particle.x += d*np.cos(r_1)
-            particle.y += d*np.sin(r_1)
-            #Step 3: turn particles to final angle
-            r_2 = delta[2] - r_1
-            particle.theta += r_2
-
-            # i.x += delta[0] + np.random.normal(scale=.05)
-            # i.y += delta[1] + np.random.normal(scale=.05)
-            # i.theta += delta[2] + np.random.normal(scale=.05)
+            # Decompose the translation vector into x and y componenets. We add r_1 and particle.theta to compute the angle of 
+            # translational vector d relative to the map frame
+            # tl;dr: find d in the map frame's x and y directions
+            particle.x += d * np.cos(r_1 + particle.theta) + np.random.normal(scale=.05)
+            particle.y += d * np.sin(r_1 + particle.theta) + np.random.normal(scale=.05)
+            # Step 3: turn particles to final angle
+            # r_2 = delta[2] - r_1
+            # particle.theta += r_2
+            particle.theta += delta[2] + np.random.normal(scale=.05)
 
     def map_calc_range(self,x,y,theta):
         """ Difficulty Level 3: implement a ray tracing likelihood model... Let me know if you are interested """
@@ -209,11 +209,11 @@ class ParticleFilter:
         for particle in self.particle_cloud:
             weights.append(particle.w)
 
-        # TODO: Some bug that's throwing index out of bounds errors
         choices = self.draw_random_sample(self.particle_cloud, weights, self.n_particles)
 
         # Reset particle cloud
         self.particle_cloud = []
+        # Populate particle cloud with sampled choices
         for chosen_particle in choices:
             self.particle_cloud.append(Particle(chosen_particle.x, chosen_particle.y, chosen_particle.theta, chosen_particle.w))
 
@@ -221,7 +221,8 @@ class ParticleFilter:
         """ Updates the particle weights in response to the scan contained in the msg """
         # TODO: implement this
         # TODO: Try more angles
-        lidar_scan_angles = [0, 90, 180, 270]
+        lidar_scan_angles = [0, 30, 60, 90, 120, 150, 180, 210, 240, 270]
+        # lidar_scan_angles = range(360)
         lidar_scan = []
 
         for theta in lidar_scan_angles:
@@ -276,8 +277,8 @@ class ParticleFilter:
         # Create particles based on gaussian distribution centered around xy_theta
         self.particle_cloud = [] 
         for g in range(self.n_particles):
-            x = np.random.normal(xy_theta[0], scale=0.2)
-            y = np.random.normal(xy_theta[1], scale=0.2)
+            x = np.random.normal(xy_theta[0], scale=0.3)
+            y = np.random.normal(xy_theta[1], scale=0.3)
             theta = np.random.normal(xy_theta[2], scale=0.1)
             self.particle_cloud.append(Particle(x, y, theta, 1))
 
