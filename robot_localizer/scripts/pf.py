@@ -176,10 +176,13 @@ class ParticleFilter:
             return
 
         # Modify particles using delta and inject noise. TODO: I assume that delta is in the Map frame. If not will have to fix this
-        for i in self.particle_cloud:
-            i.x += delta[0] + np.random.normal(scale=.2)
-            i.y += delta[1] + np.random.normal(scale=.2)
-            i.theta += delta[2] + np.random.normal(scale=.2)
+        for particle in self.particle_cloud:
+            # i.x += delta[0] + np.random.normal(scale=.05)
+            # i.y += delta[1] + np.random.normal(scale=.05)
+            # i.theta += delta[2] + np.random.normal(scale=.05)
+            particle.x += delta[0]
+            particle.y += delta[1]
+            particle.theta += delta[2]
 
     def map_calc_range(self,x,y,theta):
         """ Difficulty Level 3: implement a ray tracing likelihood model... Let me know if you are interested """
@@ -211,7 +214,7 @@ class ParticleFilter:
         """ Updates the particle weights in response to the scan contained in the msg """
         # TODO: implement this
         # TODO: Try more angles
-        lidar_scan_angles = [0, 180]
+        lidar_scan_angles = [0, 90, 180, 270]
         lidar_scan = []
 
         for theta in lidar_scan_angles:
@@ -266,9 +269,9 @@ class ParticleFilter:
         # Create particles based on gaussian distribution centered around xy_theta
         self.particle_cloud = [] 
         for g in range(self.n_particles):
-            x = np.random.normal(xy_theta[0])
-            y = np.random.normal(xy_theta[1])
-            theta = np.random.normal(xy_theta[2], scale=0.2)
+            x = np.random.normal(xy_theta[0], scale=0.2)
+            y = np.random.normal(xy_theta[1], scale=0.2)
+            theta = np.random.normal(xy_theta[2], scale=0.1)
             self.particle_cloud.append(Particle(x, y, theta, 1))
 
         self.normalize_particles()
