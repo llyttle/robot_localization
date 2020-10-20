@@ -227,7 +227,7 @@ class ParticleFilter:
                 y_vector = p.y + point[1]*math.sin(math.radians(point[0]+p.theta))
                 closest_object = self.occupancy_field.get_closest_obstacle_distance(x_vector, y_vector)
                 #calculate probabilities using f(x) = 1/x
-                particle_theta_prob.append(1/closest_object)
+                particle_theta_prob.append(1/(closest_object^2+1))
 
             #combine probabilities
             self.scan_probabilities.append(reduce(lambda a, b: a*b, particle_theta_prob))
