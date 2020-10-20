@@ -210,6 +210,7 @@ class ParticleFilter:
     def update_particles_with_laser(self, msg):
         """ Updates the particle weights in response to the scan contained in the msg """
         # TODO: implement this
+        # TODO: Try more angles
         lidar_scan_angles = [0, 180]
         lidar_scan = []
 
@@ -226,17 +227,12 @@ class ParticleFilter:
                 x_vector = p.x + point[1]*math.cos(math.radians(point[0]+p.theta))
                 y_vector = p.y + point[1]*math.sin(math.radians(point[0]+p.theta))
                 closest_object = self.occupancy_field.get_closest_obstacle_distance(x_vector, y_vector)
-                #calculate probabilities using f(x) = 1/x
-                particle_theta_prob.append(1/closest_object)
+                # Calculate probabilities using f(x) = 1/((5x)^2+1)
+                particle_theta_prob.append(1/((5*closest_object)**2+1))
 
-            #combine probabilities
+            # Combine probability at every theta for every particle
             self.scan_probabilities.append(reduce(lambda a, b: a*b, particle_theta_prob))
-            
-            
         
-        # TODO: Probably don't need this here b/c update_robot_pose() also calls normalize_particles()
-        #self.normalize_particles()
-
     @staticmethod
     def draw_random_sample(choices, probabilities, n):
         """ Return a random sample of n elements from the set choices with the specified probabilities
