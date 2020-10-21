@@ -15,18 +15,31 @@ The basic structure of a particle filter has 5 components. In successfully const
 
 In addition to the implementation of these steps, we wanted to push the code a little further and visualize the weights of each particle in rviz. Not only would it provide a nice visual representation of how the particle filter works, but it would prove a valuable time-saving tool when debugging the code.
 
+### 1.3 Project Results
+Using map `ac109_1` our filter runs pretty well given an accurate 2D Pose Estimate.
+![particle filter map 1 gif](media/particle_filter_1.gif)
+
+Our particle filter also fairs pretty well in map `ac109_2`.
+![particle filter map 2 gif](media/particle_filter_2.gif)
+
+Map `ac109_3` was a bit more challenging with its smaller area and sharp turns. However, the particle filter works decently here, only drifting off slightly more than normal.
+![particle filter map 3 gif](media/particle_filter_3.gif)
+
+Map `ac109_4` proved to be the worst as the estimation lagged behind the ground truth and was ultimately slightly shifted left.
+![particle filter map 4 gif](media/particle_filter_4.gif)
+
 ### 2. Code Structure
 (maybe a flow diagram for code here?)
 #### 2.1 Initialize Particles
 In this step particles are placed onto the map in semi-random orientations. We chose to initialize the particles around the robot with their positions selected from a gaussian distribution. This ensured that each time the particle field was initialized, they would stay around the robot while still being able to adapt to most translations. We chose the value of 0.3 for the standard deviation of the distribution; reasonably small because we were confident that our initial estimate of the robot pose was accurate. A gaussian distribution was also drawn from to define the theta value of each particle. This time, the standard deviation was even smaller at 0.1. Because we manually set the initial estimate, we were confident that its orientation would be very similar to that of the true pose. All particles started with identical weights of 1. These parameters were simple to conceptualize, and worked reasonably well throughout the project.
 
-![alt text](https://github.com/hardlyrichie/robot_localization/blob/master/media/pasted%20image%200.png "normal_dist")
+![normal dist](media/pasted_image_0.png)
 
 Another possible course for this step was to evenly distribute particles across the entire map. This would be beneficial if the initial pose estimate was very uncertain because most of the map can be tested. In the previously mentioned model, it was a requirement that the initial pose was close to the true pose.
 #### 2.2 Update Particles with Odom
 To update the particles with odom, we first believed that simply adding delta[0] and delta[1] to each particle's location would be sufficient. However, this does not account for the difference between the odom and map frames. Instead we changed our strategy to move each particle like it was the robot, taking place in three steps.
 
-![alt text](https://github.com/hardlyrichie/robot_localization/blob/master/media/update_particles_with_odom.png "update particles with odom")
+![update particles with odom](media/update_particles_with_odom.png)
 
 ##### 2.2.1 Align Particle with Direction of Travel
 To rotate the particles so that they pointed in the direction of translation, we needed to find the difference between the angle of the robot model, and the angle the robot moved in. The former is given as a variable in the code (self.current_odom_xy_theta) and the latter was simply the arctangent of delta[1]/delta[0]. These two angles were then used to create two unit vectors, whose dot product helped us derive the desired angle (r_1). Now, as an angle free of attachment to the odom frame, it was simply added to the theta value of each particle. Additionally, noise was added to r_1 to represent wheel slipping when turning.
