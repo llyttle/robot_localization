@@ -193,26 +193,24 @@ class ParticleFilter:
             self.current_odom_xy_theta = new_odom_xy_theta
             return
 
-        # Modify particles using delta and inject noise. TODO: I assume that delta is in the Map frame. If not will have to fix this
+        # Modify particles using delta and inject noise.
         for particle in self.particle_cloud:
             # Step 1: turn particles in direction of translation
-            heading_mag = math.sqrt(delta[0]**2+delta[1]**2)
-            heading_uv = [delta[0]/heading_mag, delta[1]/heading_mag]
+            # Compute the unit vector of the desired heading to move in
+            heading_mag = math.sqrt(delta[0]**2 + delta[1]**2)
+            heading_uv = np.array([delta[0] / heading_mag, delta[1] / heading_mag])
             
-            robot_mag = math.sqrt(np.cos(self.current_odom_xy_theta[2])**2 + np.sin(self.current_odom_xy_theta[2])**2)
-            robot_uv = [np.cos(self.current_odom_xy_theta[2])/robot_mag, np.sin(self.current_odom_xy_theta[2])/robot_mag]
+            # Compute the unit vector of the robot's current heading
+            robot_uv = np.array([np.cos(self.current_odom_xy_theta[2]), np.sin(self.current_odom_xy_theta[2])])
             
-            dot_product = np.dot(robot_uv, heading_uv)
-            r_1 = np.arccos(dot_product)
+            # Calculate the angle r_1 that is between the current heading and target heading
+            r_1 = np.arccos(np.dot(robot_uv, heading_uv))
 
-            #r_1 = np.arctan(delta[1] / delta[0]) - self.current_odom_xy_theta[2]
             particle.theta += r_1 + np.random.normal(scale=.05)
             
             # Step 2: move particles forward distance of translation
             d = math.sqrt(delta[0]**2 + delta[1]**2) + np.random.normal(scale=.05)
-            # Decompose the translation vector into x and y componenets. We add r_1 and particle.theta to compute the angle of 
-            # translational vector d relative to the map frame
-            # tl;dr: find d in the map frame's x and y directions
+            # Decompose the translation vector into x and y componenets
             particle.x += d * np.cos(particle.theta)
             particle.y += d * np.sin(particle.theta)
             
@@ -244,14 +242,17 @@ class ParticleFilter:
         self.particle_cloud = []
         # Populate particle cloud with sampled choices
         for chosen_particle in choices:
+            # self.particle_cloud.append(Particle(chosen_particle.x + np.random.normal(scale=.05), 
+            #                                     chosen_particle.y + np.random.normal(scale=.05), 
+            #                                     chosen_particle.theta + np.random.normal(scale=.02), 
+            #                                     chosen_particle.w))
             self.particle_cloud.append(Particle(chosen_particle.x, chosen_particle.y, chosen_particle.theta, chosen_particle.w))
 
     def update_particles_with_laser(self, msg):
         """ Updates the particle weights in response to the scan contained in the msg """
         # TODO: implement this
-        # TODO: Try more angles
-        lidar_scan_angles = [0, 30, 60, 90, 120, 150, 180, 210, 240, 270]
-        # lidar_scan_angles = range(360)
+        # lidar_scan_angles = [0, 30, 60, 90, 120, 150, 180, 210, 240, 270]
+        lidar_scan_angles = range(360)
 
         # Populates lidar_scan list with (theta, distance) for each lidar scan angle
         lidar_scan = []
@@ -265,11 +266,11 @@ class ParticleFilter:
         for p in self.particle_cloud:
             particle_theta_prob = []
             for point in lidar_scan:
-                x_vector = p.x + point[1]*math.cos(math.radians(point[0])+p.theta)
-                y_vector = p.y + point[1]*math.sin(math.radians(point[0])+p.theta)
+                x_vector = p.x + point[1] * math.cos(math.radians(point[0]) + p.theta)
+                y_vector = p.y + point[1] * math.sin(math.radians(point[0]) + p.theta)
                 closest_object = self.occupancy_field.get_closest_obstacle_distance(x_vector, y_vector)
-                # Calculate probabilities using f(x) = 1/((5x)^2+1)
-                particle_theta_prob.append(1/((5*closest_object)**2+1))
+                # Calculate probabilities using f(x) = 1/((2x)^2+1)
+                particle_theta_prob.append(1/((0.3*closest_object)**2+1))
 
             # Combine probability at every theta for every particle
             self.scan_probabilities.append(reduce(lambda a, b: a*b, particle_theta_prob))
