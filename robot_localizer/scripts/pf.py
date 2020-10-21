@@ -251,8 +251,14 @@ class ParticleFilter:
     def update_particles_with_laser(self, msg):
         """ Updates the particle weights in response to the scan contained in the msg """
         # TODO: implement this
+<<<<<<< HEAD
         # lidar_scan_angles = [0, 30, 60, 90, 120, 150, 180, 210, 240, 270]
         lidar_scan_angles = range(360)
+=======
+        # TODO: Try more angles
+        lidar_scan_angles = [0, 30, 60, 90, 120, 150, 180, 210, 240, 270]
+        #lidar_scan_angles = range(360)
+>>>>>>> d15b2a2b320837627af132bfadcfa157dcf55a9d
 
         # Populates lidar_scan list with (theta, distance) for each lidar scan angle
         lidar_scan = []
@@ -269,8 +275,13 @@ class ParticleFilter:
                 x_vector = p.x + point[1] * math.cos(math.radians(point[0]) + p.theta)
                 y_vector = p.y + point[1] * math.sin(math.radians(point[0]) + p.theta)
                 closest_object = self.occupancy_field.get_closest_obstacle_distance(x_vector, y_vector)
+<<<<<<< HEAD
                 # Calculate probabilities using f(x) = 1/((2x)^2+1)
                 particle_theta_prob.append(1/((0.3*closest_object)**2+1))
+=======
+                # Calculate probabilities using f(x) = 1/((5x)^2+1)
+                particle_theta_prob.append(1/((2*closest_object)**2+1))
+>>>>>>> d15b2a2b320837627af132bfadcfa157dcf55a9d
 
             # Combine probability at every theta for every particle
             self.scan_probabilities.append(reduce(lambda a, b: a*b, particle_theta_prob))
