@@ -24,8 +24,8 @@ In addition to the implementation of these steps, we also wanted to push the cod
 #### 2.5 Update Robot Pose
 
 ### 3. Looking Back
-#### 3.1 Trade off Decisions
-
+#### 3.1 Compromises
+Once the basic concepts of the particle filter were functional, we looked towards optimizing the accuracy of the pose estimate. As stated in section 2.3, the particles were weighted using the algebraic equation: 1/((.1x^2)+1). In this model, .1 represents the steepness of the curve as it goes towards its maximum (numbers > 1 result in a pointy peak, numbers < 1 result in a broad peak). Changing this value 
 #### 3.2 Challenges
 A reccurring obstacle during this project was moving between different reference frames. While a few helper functions were given in the scaffolded version of this code, it was difficult to determine when and where a transformation had to be made. This issue led to a slightly larger problem when we misinterpreted the strategy to weight each particle. Rather than translating lidar scan points, we were directly comparing the closest distance of the robot to that of each particle. This set us back in the project, but also provided an opportunity to work on other steps. By the time it was understood that our weigh particles section required modification, it was relativily easy to test the results in rviz immediately.
 #### 3.3 What Went Well
