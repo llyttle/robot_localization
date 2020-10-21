@@ -4,7 +4,7 @@ Each bag file captures the data from all available published topics while runnin
 ## default
 * This is the final optimization that we landed on
 * A probability function:
-    * <img src="https://latex.codecogs.com/gif.latex?f(x) = \frac{1}{(.1x)^{2}+1}" /> 
+    * <img src="../media/eq1.gif"/> 
 * 300 particles
 
 Results
@@ -14,7 +14,7 @@ Results
 
 ## aggresive_convergence
 * A probability function:
-    * <img src="https://latex.codecogs.com/gif.latex?f(x) = \frac{1}{x^{2}+1}" /> 
+    * <img src="../media/eq2.gif"/> 
 * 300 particles
 
 Results
@@ -24,7 +24,7 @@ Results
 
 ## less_particles
 * A probability function:
-    * <img src="https://latex.codecogs.com/gif.latex?f(x) = \frac{1}{(.1x)^{2}+1}" /> 
+    * <img src="../media/eq1.gif"/> 
 * 100 particles
 
 Results
