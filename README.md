@@ -53,7 +53,9 @@ Finally, now at the correct position, each particle required one last rotation t
 #### 2.3 Weigh Particles
 remember to talk about normalizing
 #### 2.4 Resample Particles
+After updating the particles with their weights, we resample with replacement the particles such that we have a new set of particles distributed around particles with higher weights. The weights of each particle therefore describe the probability that the particle is a good estimation of the robot's position. To resample, we randomly choose particles from the existing set of particles with those with larger weights have a greater probability of being chosen.
 #### 2.5 Update Robot Pose
+With the particles 
 
 ### 3. Looking Back
 #### 3.1 Compromises
