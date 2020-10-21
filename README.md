@@ -1,4 +1,16 @@
 # Robot Localization Project
 Richard Gao & Loren Lyttle
 
-This is the base repo for the Olin Computational Robotics Robot Localization project
+### 1. Project overview
+#### 1.1 Description
+#### 1.2 Project Goals
+
+### Code
+
+### Difficult Choices
+
+### Challenges
+
+### Future Improvements
+
+### Lessons Learned
