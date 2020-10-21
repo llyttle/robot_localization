@@ -55,7 +55,7 @@ Finally, now at the correct position, each particle required one last rotation t
 #### 2.3 Weigh Particles
 This step in the code is for weighing each particle based on its likelihood of being in the true pose position. After this step, each particle should have a value that represents the probability that it will be kept for the next step, resampling. To begin, the LIDAR message was used to create an array of points in front of the robot, each symbolizing an object in the robot's view. They were defined by an angle (the LIDAR message index) and a distance (the lidar message). Doing this kept the points in the base frame, meaning they could be easily transformed onto each particle. For each particle, the 'ghost' readings were redefined in the map frame using the particle's position. We then utilized the occupancy field function to find the closest object to each ghost point. Theoretically, a particle in the exact pose position would receive a distance of 0 for each ghost point, as they would be on top of the actual map obstacle.
 
-![weight_diagram](media/LIDAR_DIAGRAM.png)
+![weight_diagram](media/LIDAR_DIAGRAM.jpg)
 
 To condense these readings into one probability, we had three next steps. First was to transform each distance reading into a decimal. This would allow us to combine them into one probability for the next step. We created an equation relating distance to a scale from 0 to 1. While similar to a normal distribution, it fit our specific criteria; to be easily modified, no value greater than one, and to decrease probability with greater distances:
 
