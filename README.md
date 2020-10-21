@@ -20,7 +20,7 @@ In addition to the implementation of these steps, we wanted to push the code a l
 #### 2.1 Initialize Particles
 In this step particles are placed onto the map in semi-random orientations. We chose to initialize the particles around the robot with thier positions selected from a gaussian distribution. This ensured that each time the particle field was initialized, they would stay around the robot while still being able to adapt to most translations. We chose the value of 0.3 for the standard deviation of the distribution; reasonably small because we were confident that our initial estimate of the robot pose was accurate. A gaussian distribution was also drawn from to define the theta value of each particle. This time, the standard deviation was even smaller at 0.1. Because we manually set the initial estimate, we were confident that its orientation would be very similar to that of the true pose. All particles started with identical weights of 1. These parameters were simple to conceptualize, and worked reasonably well throughout the project.
 
-![alt text](https://github.com/hardlyrichie/robot_localization/media/pasted image 0.png "Logo Title Text 1")
+![alt text](https://github.com/hardlyrichie/robot_localization/media/pasted%image%0.png "Logo Title Text 1")
 
 Another possible course for this step was to evenly distribute particles across the entire map. This would be beneficial if the initial pose estimate was very uncertain becuase most of the map can be tested. In the previously mentioned model, it was a requirement that the initial pose was close to the true pose.
 #### 2.2 Update Particles with Odom
