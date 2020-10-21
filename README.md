@@ -58,7 +58,7 @@ To condense these readings into one probability, we had three next steps. First 
 
 Where x = distance to closest object for each ghost point.
 
-Step two was to multiply these percentages by each other. For each particle, an array of these percentages was multiplied together. At this stage, each particle has a number representing its ‘probability’ but only in reference to the other particles. To turn that into a real probability that we can operate on, we used a normalize function. The normalize function divides each probability but the sum of probabilities for all particles. This means all of the probabilities will now sum to one, and can be used for particle resampling.
+Step two was to multiply these percentages by each other. For each particle, an array of these percentages was multiplied together. At this stage, each particle has a number representing its ‘probability’ but only in reference to the other particles. To turn that into a real probability that we can operate on, we used a normalize function, step three. The normalize function divides each probability but the sum of probabilities for all particles. This means all of the probabilities will now sum to one, and can be used for particle resampling.
 #### 2.4 Resample Particles
 After updating the particles with their weights, we resample with replacement the particles such that we have a new set of particles distributed around particles with higher weights. The weights of each particle therefore describe the probability that the particle is a good estimation of the robot's position. To resample, we randomly choose particles from the existing set of particles with those with larger weights have a greater probability of being chosen.
 #### 2.5 Update Robot Pose
