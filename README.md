@@ -18,6 +18,7 @@ In addition to the implementation of these steps, we also wanted to push the cod
 ### 2. Code Structure
 (maybe a flow diagram for code here?)
 #### 2.1 Initialize Particles
+
 #### 2.2 Update Particles with Odom
 #### 2.3 Weight Particles
 #### 2.4 Resample Particles
@@ -33,5 +34,6 @@ Although this project had challenges, two aspects that went particularly well fo
 
 ### 4. Looking Forward
 #### 4.1 Future Improvements
-
+If given more time on the project, we would first like to further refine the pose estimate. Ideally, the particle filter would be able to guess the pose with a high certainty. We would like to see the particles spread out slightly for each resampling, then tightly converge when updated with the LIDAR. These qualities describe the begining of a very robust particle filter. After this, it may be interesting to return values from the filter to quantify certainty, accuracy, and other metrics. With such information we would be able to methodically optimize the particle filter with the adjustment of a few variables.
+Possibly beyond the scope of our current abilities, it may be worthwile to combine the particle filter with other robotic concepts, like room mapping. Such programs could allow a robot to 'remember' a room, and locate features out of its view.
 #### 4.2 Lessons Learned
