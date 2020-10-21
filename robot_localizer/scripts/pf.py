@@ -54,6 +54,7 @@ class Particle(object):
         return Pose(position=Point(x=self.x,y=self.y,z=0), orientation=Quaternion(x=orientation_tuple[0], y=orientation_tuple[1], z=orientation_tuple[2], w=orientation_tuple[3]))
 
     def as_marker(self, id):
+        """ A helper function to create visualization_msgs/Marker to visualize particle weights shown by alpha"""
         marker = Marker()
         marker.header.frame_id = "map"
         marker.header.stamp = rospy.Time.now()
@@ -109,8 +110,6 @@ class ParticleFilter:
 
         self.laser_max_distance = 2.0   # maximum penalty to assess in the likelihood field model
 
-        # TODO: define additional constants if needed
-
         # Setup pubs and subs
 
         # pose_listener responds to selection of a new approximate robot location (for instance using rviz)
@@ -127,7 +126,9 @@ class ParticleFilter:
         self.tf_listener = TransformListener()
         self.tf_broadcaster = TransformBroadcaster()
 
+        # Holds all particles
         self.particle_cloud = []
+        # Holds pre-normalized probabilities for each particle
         self.scan_probabilities = []
 
         # change use_projected_stable_scan to True to use point clouds instead of laser scans
@@ -151,8 +152,6 @@ class ParticleFilter:
         # first make sure that the particle weights are normalized
         self.normalize_particles()
 
-        # TODO: assign the latest pose into self.robot_pose as a geometry_msgs.Pose object
-        # just to get started we will fix the robot's pose to always be at the origin
         # Calculate the mean pose
         if self.particle_cloud:
             mean_x, mean_y, mean_theta = 0, 0, 0
@@ -231,7 +230,6 @@ class ParticleFilter:
         """
         # make sure the distribution is normalized
         self.normalize_particles()
-        # TODO: fill out the rest of the implementation
         weights = []
         for particle in self.particle_cloud:
             weights.append(particle.w)
@@ -242,23 +240,11 @@ class ParticleFilter:
         self.particle_cloud = []
         # Populate particle cloud with sampled choices
         for chosen_particle in choices:
-            # self.particle_cloud.append(Particle(chosen_particle.x + np.random.normal(scale=.05), 
-            #                                     chosen_particle.y + np.random.normal(scale=.05), 
-            #                                     chosen_particle.theta + np.random.normal(scale=.02), 
-            #                                     chosen_particle.w))
             self.particle_cloud.append(Particle(chosen_particle.x, chosen_particle.y, chosen_particle.theta, chosen_particle.w))
 
     def update_particles_with_laser(self, msg):
         """ Updates the particle weights in response to the scan contained in the msg """
-        # TODO: implement this
-<<<<<<< HEAD
-        # lidar_scan_angles = [0, 30, 60, 90, 120, 150, 180, 210, 240, 270]
         lidar_scan_angles = range(360)
-=======
-        # TODO: Try more angles
-        lidar_scan_angles = [0, 30, 60, 90, 120, 150, 180, 210, 240, 270]
-        #lidar_scan_angles = range(360)
->>>>>>> d15b2a2b320837627af132bfadcfa157dcf55a9d
 
         # Populates lidar_scan list with (theta, distance) for each lidar scan angle
         lidar_scan = []
@@ -275,13 +261,8 @@ class ParticleFilter:
                 x_vector = p.x + point[1] * math.cos(math.radians(point[0]) + p.theta)
                 y_vector = p.y + point[1] * math.sin(math.radians(point[0]) + p.theta)
                 closest_object = self.occupancy_field.get_closest_obstacle_distance(x_vector, y_vector)
-<<<<<<< HEAD
-                # Calculate probabilities using f(x) = 1/((2x)^2+1)
-                particle_theta_prob.append(1/((0.3*closest_object)**2+1))
-=======
-                # Calculate probabilities using f(x) = 1/((5x)^2+1)
-                particle_theta_prob.append(1/((2*closest_object)**2+1))
->>>>>>> d15b2a2b320837627af132bfadcfa157dcf55a9d
+                # Calculate probabilities using a tuned function
+                particle_theta_prob.append(1/((0.1*closest_object)**2+1))
 
             # Combine probability at every theta for every particle
             self.scan_probabilities.append(reduce(lambda a, b: a*b, particle_theta_prob))
@@ -329,7 +310,6 @@ class ParticleFilter:
 
     def normalize_particles(self):
         """ Make sure the particle weights define a valid distribution (i.e. sum to 1.0) """
-        # TODO: implement this
         # Check if scan probabilities has been populated for each particle
         if len(self.scan_probabilities) == len(self.particle_cloud):
             sum_of_prob = sum(self.scan_probabilities)
