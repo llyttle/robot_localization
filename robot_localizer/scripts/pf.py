@@ -7,6 +7,7 @@ import rospy
 from std_msgs.msg import Header, String
 from sensor_msgs.msg import LaserScan, PointCloud
 from geometry_msgs.msg import PoseStamped, PoseWithCovarianceStamped, PoseArray, Pose, Point, Quaternion
+from visualization_msgs.msg import Marker, MarkerArray
 from nav_msgs.srv import GetMap
 from copy import deepcopy
 
@@ -52,7 +53,23 @@ class Particle(object):
         orientation_tuple = tf.transformations.quaternion_from_euler(0,0,self.theta)
         return Pose(position=Point(x=self.x,y=self.y,z=0), orientation=Quaternion(x=orientation_tuple[0], y=orientation_tuple[1], z=orientation_tuple[2], w=orientation_tuple[3]))
 
-    # TODO: define additional helper functions if needed
+    def as_marker(self, id):
+        marker = Marker()
+        marker.header.frame_id = "map"
+        marker.header.stamp = rospy.Time.now()
+        marker.ns = "particle"
+        marker.id = id
+        marker.type = Marker.ARROW
+        marker.action = Marker.ADD
+        marker.pose = self.as_pose()
+        marker.scale.x = 0.5
+        marker.scale.y = 0.1
+        marker.scale.z = 0.1
+        marker.color.a = self.w
+        marker.color.r = 0.0
+        marker.color.g = 0.0
+        marker.color.b = 1.0
+        return marker
 
 class ParticleFilter:
     """ The class that represents a Particle Filter ROS Node
@@ -101,6 +118,7 @@ class ParticleFilter:
 
         # publish the current particle cloud.  This enables viewing particles in rviz.
         self.particle_pub = rospy.Publisher("particlecloud", PoseArray, queue_size=10)
+        self.weight_pub = rospy.Publisher('visualization_marker', MarkerArray, queue_size=10)
 
         # laser_subscriber listens for data from the lidar
         rospy.Subscriber(self.scan_topic, LaserScan, self.scan_received)
@@ -223,15 +241,16 @@ class ParticleFilter:
         # TODO: Try more angles
         lidar_scan_angles = [0, 30, 60, 90, 120, 150, 180, 210, 240, 270]
         # lidar_scan_angles = range(360)
-        lidar_scan = []
 
+        # Populates lidar_scan list with (theta, distance) for each lidar scan angle
+        lidar_scan = []
         for theta in lidar_scan_angles:
             distance = msg.ranges[theta]
-            point = (theta,distance)
+            point = (theta, distance)
             lidar_scan.append(point)
 
+        # Calculates the probability that each particle is the best estimate for the robot location 
         self.scan_probabilities = []
-        
         for p in self.particle_cloud:
             particle_theta_prob = []
             for point in lidar_scan:
@@ -303,6 +322,13 @@ class ParticleFilter:
         self.particle_pub.publish(PoseArray(header=Header(stamp=rospy.Time.now(),
                                             frame_id=self.map_frame),
                                   poses=particles_conv))
+    
+    def publish_weights(self, msg):
+        # Visualize particle weights in rviz to get a better debug each particle
+        weight_markers = MarkerArray()
+        for i, particle in enumerate(self.particle_cloud):
+            weight_markers.markers.append(particle.as_marker(i))
+        self.weight_pub.publish(weight_markers)
 
     def scan_received(self, msg):
         """ This is the default logic for what to do when processing scan data.
@@ -360,6 +386,7 @@ class ParticleFilter:
             self.resample_particles()               # resample particles to focus on areas of high density
         # publish particles (so things like rviz can see them)
         self.publish_particles(msg)
+        self.publish_weights(msg)
 
 if __name__ == '__main__':
     n = ParticleFilter()
