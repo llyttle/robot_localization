@@ -251,7 +251,7 @@ class ParticleFilter:
         # TODO: implement this
         # TODO: Try more angles
         lidar_scan_angles = [0, 30, 60, 90, 120, 150, 180, 210, 240, 270]
-        # lidar_scan_angles = range(360)
+        #lidar_scan_angles = range(360)
 
         # Populates lidar_scan list with (theta, distance) for each lidar scan angle
         lidar_scan = []
@@ -269,7 +269,7 @@ class ParticleFilter:
                 y_vector = p.y + point[1]*math.sin(math.radians(point[0])+p.theta)
                 closest_object = self.occupancy_field.get_closest_obstacle_distance(x_vector, y_vector)
                 # Calculate probabilities using f(x) = 1/((5x)^2+1)
-                particle_theta_prob.append(1/((5*closest_object)**2+1))
+                particle_theta_prob.append(1/((2*closest_object)**2+1))
 
             # Combine probability at every theta for every particle
             self.scan_probabilities.append(reduce(lambda a, b: a*b, particle_theta_prob))
