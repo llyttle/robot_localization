@@ -32,7 +32,6 @@ To help debug the particles, we better visualized the particle weights using arr
 ![weight visualization gif](media/weight_visualization.gif)
 
 ### 2. Code Structure
-(maybe a flow diagram for code here?)
 #### 2.1 Initialize Particles
 In this step particles are placed onto the map in semi-random orientations. We chose to initialize the particles around the robot with their positions selected from a gaussian distribution. This ensured that each time the particle field was initialized, they would stay around the robot while still being able to adapt to most translations. We chose the value of 0.3 for the standard deviation of the distribution; reasonably small because we were confident that our initial estimate of the robot pose was accurate. A gaussian distribution was also drawn from to define the theta value of each particle. This time, the standard deviation was even smaller at 0.1. Because we manually set the initial estimate, we were confident that its orientation would be very similar to that of the true pose. All particles started with identical weights of 1. These parameters were simple to conceptualize, and worked reasonably well throughout the project.
 
@@ -55,6 +54,9 @@ These translation values were now in the map frame, and could be added to `parti
 Finally, now at the correct position, each particle required one last rotation to match the robot (`r_2`). This value is equal to the amount that a particle was turned in step one (`r_1`) subtracted from the total rotation of the robot (`delta[2]`).
 #### 2.3 Weigh Particles
 This step in the code is for weighing each particle based on its likelihood of being in the true pose position. After this step, each particle should have a value that represents the probability that it will be kept for the next step, resampling. To begin, the LIDAR message was used to create an array of points in front of the robot, each symbolizing an object in the robot's view. They were defined by an angle (the LIDAR message index) and a distance (the lidar message). Doing this kept the points in the base frame, meaning they could be easily transformed onto each particle. For each particle, the 'ghost' readings were redefined in the map frame using the particle's position. We then utilized the occupancy field function to find the closest object to each ghost point. Theoretically, a particle in the exact pose position would receive a distance of 0 for each ghost point, as they would be on top of the actual map obstacle.
+
+![weight_diagram](media/LIDAR_DIAGRAM.png)
+
 To condense these readings into one probability, we had three next steps. First was to transform each distance reading into a decimal. This would allow us to combine them into one probability for the next step. We created an equation relating distance to a scale from 0 to 1. While similar to a normal distribution, it fit our specific criteria; to be easily modified, no value greater than one, and to decrease probability with greater distances:
 
 % = 1/((0.1x^2)+1)
