@@ -28,6 +28,9 @@ Map `ac109_3` was a bit more challenging with its smaller area and sharp turns. 
 Map `ac109_4` proved to be the worst as the estimation lagged behind the ground truth and was ultimately slightly shifted left.
 ![particle filter map 4 gif](media/particle_filter_4.gif)
 
+To help debug the particles, we better visualized the particle weights using arrows who's opacity mirrored the particle's weight value.
+![weight visualization gif](media/weight_visualization.gif)
+
 ### 2. Code Structure
 (maybe a flow diagram for code here?)
 #### 2.1 Initialize Particles
