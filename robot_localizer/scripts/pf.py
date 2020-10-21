@@ -178,14 +178,14 @@ class ParticleFilter:
         # Modify particles using delta and inject noise. TODO: I assume that delta is in the Map frame. If not will have to fix this
         for particle in self.particle_cloud:
             # Step 1: turn particles in direction of translation
-            r_1 = np.arctan(delta[1] / delta[0]) - delta[2]
+            r_1 = np.arctan(delta[1] / delta[0]) - self.current_odom_xy_theta[2]
             # Step 2: move particles forward distance of translation
             d = math.sqrt(delta[0]**2 + delta[1]**2)
             # Decompose the translation vector into x and y componenets. We add r_1 and particle.theta to compute the angle of 
             # translational vector d relative to the map frame
             # tl;dr: find d in the map frame's x and y directions
-            particle.x += d * np.cos(r_1 + particle.theta) + np.random.normal(scale=.05)
-            particle.y += d * np.sin(r_1 + particle.theta) + np.random.normal(scale=.05)
+            particle.x += d * np.cos(particle.theta - r_1) + np.random.normal(scale=.05)
+            particle.y += d * np.sin(particle.theta - r_1) + np.random.normal(scale=.05)
             # Step 3: turn particles to final angle
             # r_2 = delta[2] - r_1
             # particle.theta += r_2
