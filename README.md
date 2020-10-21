@@ -24,8 +24,8 @@ The basic structure of a particle filter has 5 components. In succesfully constr
 
 ### 3. Looking Back
 #### 3.1 Challenges
-There were a few times during this project when the challenges rose high enough to impede further progress. 
-#### 3.2 What went well
+A reccurring obstacle during this project was moving between different reference frames. While a few helper functions were given in the scaffolded version of this code, it was difficult to determine when and where a transformation had to be made. This issue led to a slightly larger problem when we misinterpreted the strategy to weight each particle. Rather than translating lidar scan points, we were directly comparing the closest distance of the robot to that of each particle. This set us back in the project, but also provided an opportunity to work on other steps. By the time it was understood that our weigh particles section required modification, it was relativily easy to test the results in rviz immediately.
+#### 3.2 What Went Well
 Although this project had challenges, two aspects that went particularly well for us were how we weighted the particles and inserted noise. Both of these factors significanlty impacted the accuracy of the robot pose estimate, and both were written clearly and in strategic locations. It was valuable to have parameters whose affect on the robot was well understood, and easily changed. This left us some extra buffer space from imperfections in other parts of the code, such as the particle update with Odom section.
 
 ### 4. Looking Forward
